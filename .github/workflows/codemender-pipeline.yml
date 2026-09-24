@@ -181,10 +181,17 @@ jobs:
             # Extract the printed diff and apply it ONLY if it applies cleanly — so
             # this is a no-op when cm already wrote the file itself.
             python3 .github/scripts/extract_cm_diff.py "$RUNNER_TEMP/fix-$FID.cm.log" > "$RUNNER_TEMP/fix-$FID.patch" || true
-            if [ -s "$RUNNER_TEMP/fix-$FID.patch" ] \
-               && git apply --check -p1 --directory="$SCAN_PATH" "$RUNNER_TEMP/fix-$FID.patch" 2>/dev/null; then
-              git apply -p1 --directory="$SCAN_PATH" "$RUNNER_TEMP/fix-$FID.patch"
-              echo "Applied extracted patch for $FID."
+            if [ -s "$RUNNER_TEMP/fix-$FID.patch" ]; then
+              if git apply --check -p1 --directory="$SCAN_PATH" "$RUNNER_TEMP/fix-$FID.patch" 2>/dev/null; then
+                git apply -p1 --directory="$SCAN_PATH" "$RUNNER_TEMP/fix-$FID.patch"
+                echo "Applied extracted patch for $FID (with --directory=$SCAN_PATH)."
+              elif git apply --check -p1 "$RUNNER_TEMP/fix-$FID.patch" 2>/dev/null; then
+                git apply -p1 "$RUNNER_TEMP/fix-$FID.patch"
+                echo "Applied extracted patch for $FID."
+              else
+                echo "Patch file exists but git apply failed. Patch content:"
+                cat "$RUNNER_TEMP/fix-$FID.patch"
+              fi
             else
               echo "No clean diff to apply for $FID (cm applied it directly, or it conflicts) — skipping."
             fi
