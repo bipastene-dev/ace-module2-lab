@@ -15,5 +15,5 @@ export function retrieveAppVersion () {
     })
   }
 }
-// CodeMender CI/CD Guardrail trigger
+// CodeMender CI/CD Guardrail trigger v2
 
